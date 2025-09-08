@@ -29,7 +29,7 @@ jobs:
         cd backend
         python manage.py migrate
       env:
-        SECRET_KEY: test-secret-key
+        SECRET_KEY: 'OGMtcFP}d0g7&5y'
         DEBUG: true
     
     - name: Run Django tests
@@ -37,7 +37,7 @@ jobs:
         cd backend
         python manage.py test
       env:
-        SECRET_KEY: test-secret-key
+        SECRET_KEY: 'OGMtcFP}d0g7&5y'
         DEBUG: true
     
     - name: Run AI tests
@@ -45,7 +45,7 @@ jobs:
         python -m pytest tests/ -v --tb=short
       env:
         PYTHONPATH: ${{ github.workspace }}/backend
-        SECRET_KEY: test-secret-key
+        SECRET_KEY: 'OGMtcFP}d0g7&5y'
 
   docker-build:
     runs-on: ubuntu-latest
