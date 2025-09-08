@@ -104,6 +104,11 @@ def _create_demo_data(user):
         (65.00, 'Banku and tilapia at local restaurant', 'food', date.today()),
         (15.00, 'MTN mobile money transfer', 'bills', date.today()),
         (95.00, 'DSTV subscription renewal', 'entertainment', date.today()),
+        # Anomaly data - unusually high expenses
+        (850.00, 'Emergency car repair at mechanic shop', 'transport', date.today()),
+        (1200.00, 'Laptop purchase for work', 'shopping', date.today()),
+        (450.00, 'Medical consultation at Ridge Hospital', 'healthcare', date.today()),
+        (320.00, 'Fine dining at Kempinski Hotel', 'food', date.today()),
     ]
     
     for amount, description, category, expense_date in sample_expenses:
