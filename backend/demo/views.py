@@ -31,32 +31,21 @@ def demo_categorize(request):
         if model_type == 'rule_based':
             from ai.models.rule_based_categorizer import RuleBasedCategorizer
             categorizer = RuleBasedCategorizer()
-            category = categorizer.categorize(description)
-            result = {
-                'predicted_category': category,
-                'confidence': 0.85,
-                'method': 'rule_based'
-            }
+            result = categorizer.predict(description)
         elif model_type == 'ml_primary':
             # ML Enhanced categorizer
             from ai.models.rule_based_categorizer import RuleBasedCategorizer
             categorizer = RuleBasedCategorizer()
-            category = categorizer.categorize(description)
-            result = {
-                'predicted_category': category,
-                'confidence': 0.92,
-                'method': 'ml_primary'
-            }
+            result = categorizer.predict(description)
+            result['method'] = 'ml_primary'
+            result['confidence'] = 0.92
         elif model_type == 'smol_vlm':
             # SmolVLM simulation with enhanced logic
             from ai.models.rule_based_categorizer import RuleBasedCategorizer
             categorizer = RuleBasedCategorizer()
-            category = categorizer.categorize(description)
-            result = {
-                'predicted_category': category,
-                'confidence': 0.88,
-                'method': 'smol_vlm'
-            }
+            result = categorizer.predict(description)
+            result['method'] = 'smol_vlm'
+            result['confidence'] = 0.88
         else:  # auto
             result = service.categorize(description)
         
