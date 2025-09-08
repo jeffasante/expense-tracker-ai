@@ -42,10 +42,12 @@ jobs:
     
     - name: Run AI tests
       run: |
-        python -m pytest tests/ -v --tb=short
+        cd backend
+        python -m pytest ../tests/ -v --tb=short
       env:
-        PYTHONPATH: ${{ github.workspace }}/backend
+        DJANGO_SETTINGS_MODULE: config.settings
         SECRET_KEY: 'OGMtcFP}d0g7&5y'
+        DEBUG: true
 
   docker-build:
     runs-on: ubuntu-latest
