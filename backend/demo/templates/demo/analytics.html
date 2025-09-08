@@ -177,12 +177,11 @@ const categoryData = {
     datasets: [{
         data: [{% for cat in top_categories %}{{ cat.total }}{% if not forloop.last %},{% endif %}{% endfor %}],
         backgroundColor: [
-            'var(--color-blue-54)', 'var(--color-teal-33)', 'var(--color-purple-18)', 
-            'var(--color-orange-15)', 'var(--color-blue-67)', 'var(--color-teal-39)',
-            'var(--color-purple-6)', 'var(--color-orange-17)'
+            '#3566F3', '#095E4A', '#3606AC', '#FDA768', 
+            '#3050D6', '#024233', '#A17DFB', '#FF843F'
         ],
         borderWidth: 2,
-        borderColor: 'var(--color-grayscale-9)'
+        borderColor: '#FFFFFF'
     }]
 };
 
