@@ -57,11 +57,11 @@ class InsightsGenerator:
         if len(expenses) < 3:
             return []
 
-        amounts = list(expenses)
+        amounts = [float(amount) for amount in expenses]
         
         if NUMPY_AVAILABLE:
-            mean_amount = np.mean(amounts)
-            std_amount = np.std(amounts)
+            mean_amount = float(np.mean(amounts))
+            std_amount = float(np.std(amounts))
         else:
             # Basic statistics without numpy
             mean_amount = sum(amounts) / len(amounts)
