@@ -91,8 +91,8 @@
                         <strong>GH₵{{ cat.total|floatformat:2 }}</strong>
                     </div>
                 </div>
-                <div class="progress mb-3" style="height: 8px;">
-                    <div class="progress-bar" style="width: {{ cat.percentage }}%"></div>
+                <div class="ladder-progress mb-3">
+                    <div class="ladder-progress-bar" style="width: {{ cat.percentage }}%"></div>
                 </div>
                 {% endfor %}
             </div>
@@ -177,11 +177,12 @@ const categoryData = {
     datasets: [{
         data: [{% for cat in top_categories %}{{ cat.total }}{% if not forloop.last %},{% endif %}{% endfor %}],
         backgroundColor: [
-            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-            '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+            'var(--color-blue-54)', 'var(--color-teal-33)', 'var(--color-purple-18)', 
+            'var(--color-orange-15)', 'var(--color-blue-67)', 'var(--color-teal-39)',
+            'var(--color-purple-6)', 'var(--color-orange-17)'
         ],
         borderWidth: 2,
-        borderColor: '#fff'
+        borderColor: 'var(--color-grayscale-9)'
     }]
 };
 

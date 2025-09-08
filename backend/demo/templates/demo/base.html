@@ -3,26 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AI Expense Tracker Demo{% endblock %}</title>
+    <title>{% block title %}Ladder AI Expense Tracker{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .ai-badge { background: linear-gradient(45deg, #667eea 0%, #764ba2 100%); }
-        .category-badge { font-size: 0.8rem; }
-        .confidence-bar { height: 8px; border-radius: 4px; }
-        .demo-card { border-left: 4px solid #667eea; }
-    </style>
+    {% load static %}
+    <link href="{% static 'demo/css/ladder-theme.css' %}" rel="stylesheet">
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<body style="background-color: var(--color-grayscale-17);">
+    <nav class="navbar navbar-expand-lg navbar-dark ladder-navbar">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'demo_home' %}">
-                <i class="fas fa-robot me-2"></i>AI Expense Tracker
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'demo_home' %}">
+                <div class="ladder-gradient-primary rounded-circle p-2 me-3">
+                    <i class="fas fa-chart-line text-white"></i>
+                </div>
+                <div>
+                    <div class="fw-bold">Ladder Financial</div>
+                    <small class="opacity-75">AI Expense Tracker</small>
+                </div>
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="{% url 'demo_home' %}">Live Demo</a>
-                <a class="nav-link" href="{% url 'demo_analytics' %}">Analytics</a>
-                <a class="nav-link" href="/api/docs/" target="_blank">API Docs</a>
+                <a class="nav-link px-3" href="{% url 'demo_home' %}"><i class="fas fa-brain me-1"></i>Live Demo</a>
+                <a class="nav-link px-3" href="{% url 'demo_analytics' %}"><i class="fas fa-chart-bar me-1"></i>Analytics</a>
+                <a class="nav-link px-3" href="/api/docs/" target="_blank"><i class="fas fa-code me-1"></i>API Docs</a>
             </div>
         </div>
     </nav>
