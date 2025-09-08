@@ -99,6 +99,23 @@
             </div>
         </div>
 
+        <div id="jwtTokenCard" class="ladder-card mt-4 d-none">
+            <div class="card-header ladder-gradient-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-key me-2"></i>Your JWT Token (for API Testing)</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 align-items-center">
+                    <input type="text" class="form-control font-monospace small" id="jwtTokenDisplay" readonly>
+                    <button class="ladder-btn-primary btn-sm" onclick="copyToken()">
+                        <i class="fas fa-copy me-1"></i>Copy
+                    </button>
+                </div>
+                <small class="text-muted mt-2 d-block">
+                    <i class="fas fa-info-circle me-1"></i>Use this token in Swagger UI: <code>Bearer YOUR_TOKEN</code>
+                </small>
+            </div>
+        </div>
+
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">Try These Examples</h5>
@@ -137,6 +154,32 @@ const applyOverride = document.getElementById('applyOverride');
 
 let debounceTimer;
 let currentPrediction = null;
+
+// Show JWT token if user is logged in
+function showJWTToken() {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        document.getElementById('jwtTokenDisplay').value = token;
+        document.getElementById('jwtTokenCard').classList.remove('d-none');
+    }
+}
+
+function copyToken() {
+    const tokenInput = document.getElementById('jwtTokenDisplay');
+    tokenInput.select();
+    document.execCommand('copy');
+    
+    // Show feedback
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+    }, 2000);
+}
+
+// Check for token on page load
+document.addEventListener('DOMContentLoaded', showJWTToken);
 
 expenseInput.addEventListener('input', function() {
     clearTimeout(debounceTimer);
