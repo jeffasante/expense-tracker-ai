@@ -1,0 +1,202 @@
+{% extends 'demo/base.html' %}
+
+{% block title %}Analytics Dashboard - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4"><i class="fas fa-chart-bar me-2"></i>Expense Analytics Dashboard</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>GH₵{{ insights.total_amount|floatformat:2 }}</h4>
+                        <p class="mb-0">Total Spending</p>
+                    </div>
+                    <i class="fas fa-money-bill-wave fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ insights.total_expenses }}</h4>
+                        <p class="mb-0">Total Expenses</p>
+                    </div>
+                    <i class="fas fa-receipt fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>GH₵{{ insights.average_expense|floatformat:2 }}</h4>
+                        <p class="mb-0">Average Expense</p>
+                    </div>
+                    <i class="fas fa-calculator fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ anomalies|length }}</h4>
+                        <p class="mb-0">Anomalies Detected</p>
+                    </div>
+                    <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Spending by Category</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top Categories</h5>
+            </div>
+            <div class="card-body">
+                {% for cat in top_categories %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="badge bg-primary">{{ cat.category|upper }}</span>
+                        <small class="text-muted ms-2">{{ cat.count }} expenses</small>
+                    </div>
+                    <div class="text-end">
+                        <strong>GH₵{{ cat.total|floatformat:2 }}</strong>
+                    </div>
+                </div>
+                <div class="progress mb-3" style="height: 8px;">
+                    <div class="progress-bar" style="width: {{ cat.percentage }}%"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if anomalies %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Anomaly Detection</h5>
+                <small>AI detected unusual spending patterns</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for anomaly in anomalies %}
+                    <div class="col-md-6 mb-3">
+                        <div class="alert alert-warning">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ anomaly.description }}</strong>
+                                    <br><small class="text-muted">{{ anomaly.date }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-warning text-dark">GH₵{{ anomaly.amount|floatformat:2 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">AI Insights Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                            <h6>AI-Powered Analysis</h6>
+                            <p class="text-muted small">Advanced algorithms analyze spending patterns and detect anomalies automatically</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                            <h6>Real-time Insights</h6>
+                            <p class="text-muted small">Get instant feedback on spending habits with statistical analysis</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3">
+                            <i class="fas fa-shield-alt fa-3x text-info mb-3"></i>
+                            <h6>Smart Detection</h6>
+                            <p class="text-muted small">Proactive anomaly detection helps identify unusual expenses</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Category Chart
+const ctx = document.getElementById('categoryChart').getContext('2d');
+const categoryData = {
+    labels: [{% for cat in top_categories %}'{{ cat.category|title }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+    datasets: [{
+        data: [{% for cat in top_categories %}{{ cat.total }}{% if not forloop.last %},{% endif %}{% endfor %}],
+        backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+            '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+        ],
+        borderWidth: 2,
+        borderColor: '#fff'
+    }]
+};
+
+new Chart(ctx, {
+    type: 'doughnut',
+    data: categoryData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

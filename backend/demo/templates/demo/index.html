@@ -1,0 +1,155 @@
+{% extends 'demo/base.html' %}
+
+{% block title %}Live AI Demo - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card demo-card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-brain me-2"></i>Live AI Expense Categorization</h4>
+                <small>Type an expense description and watch AI categorize it in real-time</small>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="expenseInput" class="form-label">Expense Description</label>
+                    <input type="text" class="form-control form-control-lg" id="expenseInput" 
+                           placeholder="e.g., Waakye at chop bar, Trotro to Kotoka Airport, Shopping at Shoprite">
+                </div>
+                
+                <div id="result" class="d-none">
+                    <div class="alert alert-success">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Category:</strong> 
+                                <span id="category" class="badge ai-badge text-white ms-2"></span>
+                            </div>
+                            <div>
+                                <strong>Confidence:</strong> 
+                                <span id="confidence" class="text-success fw-bold"></span>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <div class="confidence-bar bg-light">
+                                <div id="confidenceBar" class="confidence-bar bg-success"></div>
+                            </div>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            Method: <span id="method"></span>
+                        </small>
+                    </div>
+                </div>
+
+                <div id="loading" class="d-none text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Processing...</span>
+                    </div>
+                    <p class="mt-2 text-muted">AI is analyzing your expense...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tags fa-2x text-primary mb-2"></i>
+                        <h5>Smart Categorization</h5>
+                        <p class="text-muted">AI automatically categorizes expenses using advanced keyword matching</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
+                        <h5>Real-time Analysis</h5>
+                        <p class="text-muted">Instant insights and confidence scoring for every prediction</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Try These Examples</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-primary btn-sm mb-2 example-btn" data-text="Waakye at Auntie Muni chop bar">Waakye at chop bar</button>
+                        <button class="btn btn-outline-primary btn-sm mb-2 example-btn" data-text="Trotro fare to Kotoka Airport">Trotro to airport</button>
+                        <button class="btn btn-outline-primary btn-sm mb-2 example-btn" data-text="Shopping at Shoprite East Legon">Shoprite shopping</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-primary btn-sm mb-2 example-btn" data-text="ECG electricity bill payment">ECG bill payment</button>
+                        <button class="btn btn-outline-primary btn-sm mb-2 example-btn" data-text="DSTV subscription renewal">DSTV subscription</button>
+                        <button class="btn btn-outline-primary btn-sm mb-2 example-btn" data-text="Fuel at GOIL filling station">GOIL fuel station</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const expenseInput = document.getElementById('expenseInput');
+const result = document.getElementById('result');
+const loading = document.getElementById('loading');
+const category = document.getElementById('category');
+const confidence = document.getElementById('confidence');
+const confidenceBar = document.getElementById('confidenceBar');
+const method = document.getElementById('method');
+
+let debounceTimer;
+
+expenseInput.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        if (this.value.trim()) {
+            categorizeExpense(this.value);
+        } else {
+            result.classList.add('d-none');
+        }
+    }, 500);
+});
+
+document.querySelectorAll('.example-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const text = this.dataset.text;
+        expenseInput.value = text;
+        categorizeExpense(text);
+    });
+});
+
+async function categorizeExpense(description) {
+    loading.classList.remove('d-none');
+    result.classList.add('d-none');
+    
+    try {
+        const response = await fetch('/demo/categorize/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ description })
+        });
+        
+        const data = await response.json();
+        
+        category.textContent = data.predicted_category.toUpperCase();
+        confidence.textContent = (data.confidence * 100).toFixed(1) + '%';
+        confidenceBar.style.width = (data.confidence * 100) + '%';
+        method.textContent = data.method || 'rule_based';
+        
+        loading.classList.add('d-none');
+        result.classList.remove('d-none');
+    } catch (error) {
+        console.error('Error:', error);
+        loading.classList.add('d-none');
+    }
+}
+</script>
+{% endblock %}
