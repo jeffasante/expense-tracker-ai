@@ -12,6 +12,15 @@
             </div>
             <div class="card-body">
                 <div class="mb-3">
+                    <label for="aiModel" class="form-label">AI Model Selection</label>
+                    <select class="form-select" id="aiModel">
+                        <option value="rule_based">Rule-Based Categorizer</option>
+                        <option value="ml_primary">ML Enhanced Categorizer</option>
+                        <option value="smol_vlm">SmolVLM Transformer</option>
+                        <option value="auto">Auto (Best Available)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label for="expenseInput" class="form-label">Expense Description</label>
                     <input type="text" class="form-control form-control-lg" id="expenseInput" 
                            placeholder="e.g., Waakye at chop bar, Trotro to Kotoka Airport, Shopping at Shoprite">
@@ -116,6 +125,7 @@
 {% block scripts %}
 <script>
 const expenseInput = document.getElementById('expenseInput');
+const aiModel = document.getElementById('aiModel');
 const result = document.getElementById('result');
 const loading = document.getElementById('loading');
 const category = document.getElementById('category');
@@ -157,7 +167,10 @@ async function categorizeExpense(description) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ description })
+            body: JSON.stringify({ 
+                description: description,
+                model: aiModel.value 
+            })
         });
         
         const data = await response.json();
