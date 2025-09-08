@@ -68,7 +68,8 @@ class InsightsGenerator:
             variance = sum((x - mean_amount) ** 2 for x in amounts) / len(amounts)
             std_amount = variance ** 0.5
             
-        threshold = mean_amount + (2 * std_amount)
+        # Lower threshold for demo purposes to catch high-value expenses
+        threshold = mean_amount + (1.5 * std_amount) if std_amount > 0 else mean_amount * 2
 
         anomalous_expenses = Expense.objects.filter(
             user=self.user,
