@@ -1,0 +1,111 @@
+{% extends 'demo/base.html' %}
+
+{% block title %}Register - Ladder Financial{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="ladder-card">
+            <div class="card-header ladder-gradient-secondary text-white text-center">
+                <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Register</h4>
+                <small class="opacity-90">Create your account</small>
+            </div>
+            <div class="card-body">
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="ladder-input form-control" id="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="ladder-input form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="ladder-input form-control" id="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password_confirm" class="form-label">Confirm Password</label>
+                        <input type="password" class="ladder-input form-control" id="password_confirm" required>
+                    </div>
+                    <button type="submit" class="ladder-btn-secondary w-100" id="registerBtn">
+                        <i class="fas fa-user-plus me-2"></i>Register
+                    </button>
+                </form>
+                
+                <div id="registerError" class="alert alert-danger mt-3 d-none"></div>
+                <div id="registerSuccess" class="alert alert-success mt-3 d-none"></div>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">Already have an account? <a href="{% url 'demo_login' %}" class="text-ladder-primary">Login here</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const registerBtn = document.getElementById('registerBtn');
+    const registerError = document.getElementById('registerError');
+    const registerSuccess = document.getElementById('registerSuccess');
+    
+    const username = document.getElementById('username').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const password_confirm = document.getElementById('password_confirm').value;
+    
+    if (password !== password_confirm) {
+        registerError.textContent = 'Passwords do not match.';
+        registerError.classList.remove('d-none');
+        return;
+    }
+    
+    registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating account...';
+    registerBtn.disabled = true;
+    registerError.classList.add('d-none');
+    registerSuccess.classList.add('d-none');
+    
+    try {
+        const response = await fetch('/api/auth/register/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, email, password, password_confirm })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Store tokens
+            localStorage.setItem('access_token', data.access);
+            localStorage.setItem('refresh_token', data.refresh);
+            localStorage.setItem('user_data', JSON.stringify(data.user));
+            
+            registerSuccess.textContent = 'Registration successful! Redirecting...';
+            registerSuccess.classList.remove('d-none');
+            
+            // Redirect to demo
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        } else {
+            const errorMsg = data.email?.[0] || data.username?.[0] || data.password?.[0] || 'Registration failed.';
+            registerError.textContent = errorMsg;
+            registerError.classList.remove('d-none');
+        }
+    } catch (error) {
+        registerError.textContent = 'Network error. Please try again.';
+        registerError.classList.remove('d-none');
+    }
+    
+    registerBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Register';
+    registerBtn.disabled = false;
+});
+</script>
+{% endblock %}

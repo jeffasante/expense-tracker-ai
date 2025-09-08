@@ -17,6 +17,19 @@ def demo_home(request):
     """Demo homepage with live AI categorization"""
     return render(request, 'demo/index.html')
 
+def demo_login(request):
+    """Demo login page"""
+    return render(request, 'demo/login.html')
+
+def demo_register(request):
+    """Demo registration page"""
+    return render(request, 'demo/register.html')
+
+def demo_logout(request):
+    """Demo logout redirect"""
+    from django.shortcuts import redirect
+    return redirect('demo_login')
+
 @csrf_exempt
 def demo_categorize(request):
     """Live AI categorization endpoint for demo"""

@@ -25,6 +25,16 @@
                 <a class="nav-link px-3" href="{% url 'demo_home' %}"><i class="fas fa-brain me-1"></i>Live Demo</a>
                 <a class="nav-link px-3" href="{% url 'demo_analytics' %}"><i class="fas fa-chart-bar me-1"></i>Analytics</a>
                 <a class="nav-link px-3" href="/api/docs/" target="_blank"><i class="fas fa-code me-1"></i>API Docs</a>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle px-3" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user me-1"></i><span id="navUsername">Account</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li id="loginLink"><a class="dropdown-item" href="{% url 'demo_login' %}"><i class="fas fa-sign-in-alt me-2"></i>Login</a></li>
+                        <li id="registerLink"><a class="dropdown-item" href="{% url 'demo_register' %}"><i class="fas fa-user-plus me-2"></i>Register</a></li>
+                        <li id="logoutLink" class="d-none"><a class="dropdown-item" href="#" onclick="logout()"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
@@ -35,6 +45,31 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Check authentication state
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            const userData = localStorage.getItem('user_data');
+            
+            if (token && userData) {
+                const user = JSON.parse(userData);
+                document.getElementById('navUsername').textContent = user.username;
+                document.getElementById('loginLink').classList.add('d-none');
+                document.getElementById('registerLink').classList.add('d-none');
+                document.getElementById('logoutLink').classList.remove('d-none');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user_data');
+            window.location.href = '/demo/login/';
+        }
+        
+        // Check auth on page load
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
