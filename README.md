@@ -33,6 +33,18 @@ cd expense-tracker-ai
 docker-compose up --build
 ```
 
+### Quick Test Credentials
+For immediate testing, use these pre-configured credentials:
+```json
+{
+  "email": "test@example.com",
+  "password": "testpass123"
+}
+```
+**Access Points:**
+- Demo Login: `http://localhost:8000/demo/login/`
+- API Docs: `http://localhost:8000/api/docs/` (use JWT token from login)
+
 ### Option 2: Local Setup
 ```bash
 ./setup.sh
@@ -132,15 +144,15 @@ backend/
 
 ### 1. Register & Login
 ```bash
-# Register
+# Quick Login (test credentials)
+curl -X POST http://localhost:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"testpass123"}'
+
+# Or register new user
 curl -X POST http://localhost:8000/api/auth/register/ \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","username":"user","password":"pass123","password_confirm":"pass123"}'
-
-# Login
-curl -X POST http://localhost:8000/api/auth/login/ \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"pass123"}'
 ```
 
 ### 2. Create Expense
