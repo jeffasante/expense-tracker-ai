@@ -136,6 +136,13 @@
                     <button type="button" class="btn example-btn" data-text="ECG electricity bill payment" style="background: #f8f9fa; color: #666; font-size: 11px; padding: 6px 10px; text-align: left;">ECG bill payment</button>
                 </div>
             </div>
+            
+            <!-- Reset Button -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5e5;">
+                <button type="button" class="btn" id="resetBtn" style="background: #dc3545; color: white; width: 100%; font-size: 12px;">
+                    Reset to Sample Data
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -177,13 +184,20 @@ async function loadExpenses() {
             expenses = data.results || data; // Handle paginated or direct array response
             
             // Add UI-specific properties
-            expenses = expenses.map(expense => ({
-                ...expense,
-                aiPredicted: expense.ai_predicted || false,
-                manualOverride: expense.ai_predicted === false && expense.ai_confidence
-            }));
+            expenses = expenses.map(expense => {
+                console.log('Expense data:', expense); // Debug log
+                const hasAIPrediction = expense.ai_predicted_read === true || expense.ai_predicted === true || 
+                                      (expense.ai_predicted_category && expense.ai_predicted_category !== null);
+                return {
+                    ...expense,
+                    aiPredicted: hasAIPrediction,
+                    manualOverride: expense.ai_predicted === false && expense.ai_confidence
+                };
+            });
             
             aiPredictionCount = expenses.filter(e => e.aiPredicted).length;
+            console.log('AI Prediction Count:', aiPredictionCount, 'Total expenses:', expenses.length);
+            console.log('Expenses with AI predictions:', expenses.filter(e => e.aiPredicted));
         } else {
             // Fallback to sample data if API fails or user not authenticated
             loadSampleData();
@@ -227,15 +241,21 @@ function loadSampleData() {
 }
 
 function updateStats() {
-    const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const total = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
     const thisMonth = expenses
         .filter(expense => new Date(expense.date).getMonth() === new Date().getMonth())
-        .reduce((sum, expense) => sum + expense.amount, 0);
+        .reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
     const categories = new Set(expenses.map(expense => expense.category)).size;
+    
+    // Count AI predictions properly on each update
+    const aiCount = expenses.filter(e => {
+        return e.aiPredicted || e.ai_predicted_read === true || e.ai_predicted === true || 
+               (e.ai_predicted_category && e.ai_predicted_category !== null);
+    }).length;
     
     document.getElementById('totalExpenses').textContent = formatCurrency(total);
     document.getElementById('monthlyExpenses').textContent = formatCurrency(thisMonth);
-    document.getElementById('aiPredictions').textContent = aiPredictionCount;
+    document.getElementById('aiPredictions').textContent = aiCount;
     document.getElementById('categoryCount').textContent = categories;
 }
 
@@ -260,7 +280,7 @@ function renderExpenses() {
                     <div class="expense-details">
                         <div class="expense-title">
                             ${expense.description}
-                            ${expense.aiPredicted ? '<span style="background: #059669; color: white; font-size: 10px; padding: 2px 4px; border-radius: 3px; margin-left: 6px;">AI</span>' : ''}
+                            ${(expense.aiPredicted || expense.ai_predicted_read === true || expense.ai_predicted === true || (expense.ai_predicted_category && expense.ai_predicted_category !== null)) ? '<span style="background: #059669; color: white; font-size: 10px; padding: 2px 4px; border-radius: 3px; margin-left: 6px;">AI</span>' : ''}
                             ${expense.manualOverride ? '<span style="background: #f59e0b; color: white; font-size: 10px; padding: 2px 4px; border-radius: 3px; margin-left: 6px;">Override</span>' : ''}
                         </div>
                         <div class="expense-date">${new Date(expense.date).toLocaleDateString()}</div>
@@ -426,6 +446,8 @@ document.getElementById('expenseForm').addEventListener('submit', async function
         ai_confidence: currentAIPrediction ? currentAIPrediction.confidence : null
     };
     
+    console.log('Sending form data:', formData); // Debug log
+    
     try {
         // Save to database via API
         const response = await fetch('/api/expenses/', {
@@ -439,8 +461,8 @@ document.getElementById('expenseForm').addEventListener('submit', async function
         if (response.ok) {
             const savedExpense = await response.json();
             
-            // Add to local array for immediate UI update
-            expenses.push({
+            // Add to local array for immediate UI update (prepend to show at top)
+            expenses.unshift({
                 ...savedExpense,
                 aiPredicted: wasAIPredicted,
                 manualOverride: currentAIPrediction && !wasAIPredicted
@@ -495,6 +517,33 @@ async function refreshToken() {
     localStorage.removeItem('refresh_token');
     return false;
 }
+
+// Reset button functionality
+document.getElementById('resetBtn').addEventListener('click', async function() {
+    if (confirm('This will reset all data to sample expenses. Continue?')) {
+        try {
+            // Delete all existing expenses via API
+            for (const expense of expenses) {
+                if (expense.id) {
+                    await fetch(`/api/expenses/${expense.id}/`, {
+                        method: 'DELETE'
+                    });
+                }
+            }
+            
+            // Load sample data
+            loadSampleData();
+            updateStats();
+            renderExpenses();
+        } catch (error) {
+            console.error('Error resetting data:', error);
+            // Fallback to local reset only
+            loadSampleData();
+            updateStats();
+            renderExpenses();
+        }
+    }
+});
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async function() {

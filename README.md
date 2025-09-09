@@ -1,6 +1,6 @@
 # AI-Powered Expense Tracker API
 
-A Django REST API with AI-powered expense categorization and insights generation for Ladder Financial Systems assessment.
+A Django REST API with AI-powered expense categorization and insights generation.
 
 ## Assessment Requirements Fulfilled
 
@@ -223,8 +223,10 @@ curl -X GET http://localhost:8000/api/ai/insights/ \
 - API performance metrics
 - User activity tracking
 
----
+## Read More
 
-**Built for Ladder Financial Systems Backend Engineering Assessment**
+For detailed technical documentation, architecture deep-dive, and implementation details, see [more.md](../more.md).
+
+---
 
 *Demonstrates: Django expertise, AI/ML integration, API design, testing practices, and production-ready code structure.*
