@@ -24,6 +24,7 @@ class RuleBasedCategorizer(CategorizerInterface):
                 if keyword in description_lower:
                     return {
                         'predicted_category': category,
+                        'confidence': 0.85,
                         'method': 'rule_based',
                         'matched_keyword': keyword
                     }

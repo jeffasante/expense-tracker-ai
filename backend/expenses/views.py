@@ -51,7 +51,7 @@ class ExpenseListCreateView(generics.ListCreateAPIView):
 
 class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ExpenseSerializer
-    permission_classes = [AllowAny]  # Allow demo usage without auth
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
