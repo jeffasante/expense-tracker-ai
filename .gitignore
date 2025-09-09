@@ -70,3 +70,6 @@ htmlcov/
 
 # Node modules (if any)
 node_modules/
+
+# ML Pipeline Results
+ML_PIPELINE_RESULTS.md
