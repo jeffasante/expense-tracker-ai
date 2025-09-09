@@ -1,167 +1,68 @@
 {% extends 'demo/base.html' %}
 
-{% block title %}Analytics Dashboard - Expense Tracker{% endblock %}
+{% block title %}Analytics - Ladder AI Expense Tracker{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2 class="mb-4"><i class="fas fa-chart-bar me-2"></i>Expense Analytics Dashboard</h2>
+<div class="dashboard">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Average Daily</span>
+                <div class="stat-icon">
+                    <svg width="16" height="16">
+                        <use href="#trending-up"></use>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value" id="avgDaily">$0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Top Category</span>
+                <div class="stat-icon">
+                    <svg width="16" height="16">
+                        <use href="#bar-chart-3"></use>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value" id="topCategory">-</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">AI Accuracy</span>
+                <div class="stat-icon">
+                    <svg width="16" height="16">
+                        <use href="#brain"></use>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value" id="aiAccuracy">85%</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Predictions</span>
+                <div class="stat-icon">
+                    <svg width="16" height="16">
+                        <use href="#zap"></use>
+                    </svg>
+                </div>
+            </div>
+            <div class="stat-value" id="predictions">0</div>
+        </div>
     </div>
-</div>
 
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>GH₵{{ insights.total_amount|floatformat:2 }}</h4>
-                        <p class="mb-0">Total Spending</p>
-                    </div>
-                    <i class="fas fa-money-bill-wave fa-2x opacity-75"></i>
-                </div>
+    <div class="content-grid">
+        <div class="main-content">
+            <h2 class="section-title">Expense Trends</h2>
+            <div style="height: 300px; display: flex; align-items: center; justify-content: center; color: #666;">
+                <canvas id="expenseChart" width="400" height="200"></canvas>
             </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>{{ insights.total_expenses }}</h4>
-                        <p class="mb-0">Total Expenses</p>
-                    </div>
-                    <i class="fas fa-receipt fa-2x opacity-75"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>GH₵{{ insights.average_expense|floatformat:2 }}</h4>
-                        <p class="mb-0">Average Expense</p>
-                    </div>
-                    <i class="fas fa-calculator fa-2x opacity-75"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>{{ anomalies|length }}</h4>
-                        <p class="mb-0">Anomalies Detected</p>
-                    </div>
-                    <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Spending by Category</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="categoryChart" width="400" height="300"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Top Categories</h5>
-            </div>
-            <div class="card-body">
-                {% for cat in top_categories %}
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <span class="badge bg-primary">{{ cat.category|upper }}</span>
-                        <small class="text-muted ms-2">{{ cat.count }} expenses</small>
-                    </div>
-                    <div class="text-end">
-                        <strong>GH₵{{ cat.total|floatformat:2 }}</strong>
-                    </div>
-                </div>
-                <div class="ladder-progress mb-3">
-                    <div class="ladder-progress-bar" style="width: {{ cat.percentage }}%"></div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-
-{% if anomalies %}
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Anomaly Detection</h5>
-                <small>AI detected unusual spending patterns</small>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    {% for anomaly in anomalies %}
-                    <div class="col-md-6 mb-3">
-                        <div class="alert alert-warning">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <strong>{{ anomaly.description }}</strong>
-                                    <br><small class="text-muted">{{ anomaly.date }}</small>
-                                </div>
-                                <div class="text-end">
-                                    <span class="badge bg-warning text-dark">GH₵{{ anomaly.amount|floatformat:2 }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">AI Insights Summary</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="text-center p-3">
-                            <i class="fas fa-robot fa-3x text-primary mb-3"></i>
-                            <h6>AI-Powered Analysis</h6>
-                            <p class="text-muted small">Advanced algorithms analyze spending patterns and detect anomalies automatically</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center p-3">
-                            <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
-                            <h6>Real-time Insights</h6>
-                            <p class="text-muted small">Get instant feedback on spending habits with statistical analysis</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center p-3">
-                            <i class="fas fa-shield-alt fa-3x text-info mb-3"></i>
-                            <h6>Smart Detection</h6>
-                            <p class="text-muted small">Proactive anomaly detection helps identify unusual expenses</p>
-                        </div>
-                    </div>
-                </div>
+        <div class="sidebar">
+            <h2 class="section-title">Category Breakdown</h2>
+            <div id="categoryBreakdown">
+                <!-- Category breakdown will be loaded here -->
             </div>
         </div>
     </div>
@@ -169,34 +70,113 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Category Chart
-const ctx = document.getElementById('categoryChart').getContext('2d');
-const categoryData = {
-    labels: [{% for cat in top_categories %}'{{ cat.category|title }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-    datasets: [{
-        data: [{% for cat in top_categories %}{{ cat.total }}{% if not forloop.last %},{% endif %}{% endfor %}],
-        backgroundColor: [
-            '#3566F3', '#095E4A', '#3606AC', '#FDA768', 
-            '#3050D6', '#024233', '#A17DFB', '#FF843F'
-        ],
-        borderWidth: 2,
-        borderColor: '#FFFFFF'
-    }]
-};
-
-new Chart(ctx, {
-    type: 'doughnut',
-    data: categoryData,
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
+    let expenses = [];
+    
+    function loadAnalyticsData() {
+        // Mock data - in real app, fetch from API
+        expenses = [
+            { amount: 45.50, category: 'food', date: '2024-01-15' },
+            { amount: 12.00, category: 'transport', date: '2024-01-14' },
+            { amount: 89.99, category: 'utilities', date: '2024-01-13' },
+            { amount: 25.00, category: 'food', date: '2024-01-12' },
+            { amount: 15.50, category: 'transport', date: '2024-01-11' }
+        ];
+        
+        updateAnalytics();
+        renderChart();
+        renderCategoryBreakdown();
     }
-});
+    
+    function updateAnalytics() {
+        const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+        const avgDaily = total / 30; // Assuming 30 days
+        
+        // Find top category
+        const categoryTotals = {};
+        expenses.forEach(expense => {
+            categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
+        });
+        const topCategory = Object.keys(categoryTotals).reduce((a, b) => 
+            categoryTotals[a] > categoryTotals[b] ? a : b, 'none'
+        );
+        
+        document.getElementById('avgDaily').textContent = formatCurrency(avgDaily);
+        document.getElementById('topCategory').textContent = topCategory.charAt(0).toUpperCase() + topCategory.slice(1);
+        document.getElementById('predictions').textContent = expenses.length;
+    }
+    
+    function renderChart() {
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        
+        // Group expenses by date
+        const dailyTotals = {};
+        expenses.forEach(expense => {
+            const date = expense.date;
+            dailyTotals[date] = (dailyTotals[date] || 0) + expense.amount;
+        });
+        
+        const dates = Object.keys(dailyTotals).sort();
+        const amounts = dates.map(date => dailyTotals[date]);
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates.map(date => new Date(date).toLocaleDateString()),
+                datasets: [{
+                    label: 'Daily Expenses',
+                    data: amounts,
+                    borderColor: '#1a1a1a',
+                    backgroundColor: 'rgba(26, 26, 26, 0.1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function renderCategoryBreakdown() {
+        const categoryTotals = {};
+        expenses.forEach(expense => {
+            categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
+        });
+        
+        const total = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
+        
+        const breakdown = document.getElementById('categoryBreakdown');
+        breakdown.innerHTML = Object.entries(categoryTotals)
+            .sort(([,a], [,b]) => b - a)
+            .map(([category, amount]) => {
+                const percentage = ((amount / total) * 100).toFixed(1);
+                return `
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="font-weight: 500; text-transform: capitalize;">${category}</span>
+                            <span>${formatCurrency(amount)}</span>
+                        </div>
+                        <div style="background-color: #f5f5f5; border-radius: 4px; height: 8px;">
+                            <div style="background-color: #1a1a1a; height: 100%; width: ${percentage}%; border-radius: 4px;"></div>
+                        </div>
+                        <div style="font-size: 12px; color: #666; margin-top: 2px;">${percentage}%</div>
+                    </div>
+                `;
+            }).join('');
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadAnalyticsData);
 </script>
 {% endblock %}

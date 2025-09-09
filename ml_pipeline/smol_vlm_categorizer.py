@@ -2,8 +2,9 @@ import torch
 from transformers import AutoTokenizer, AutoModelForVision2Seq
 import json
 import re
+from backend.ai.interfaces.categorizer import CategorizerInterface
 
-class SmolVLMCategorizer:
+class SmolVLMCategorizer(CategorizerInterface):
     """Fallback categorizer using SmolVLM-256M-Instruct"""
     
     def __init__(self):
@@ -14,31 +15,18 @@ class SmolVLMCategorizer:
         self._load_model()
     
     def _load_model(self):
-        """Load SmolVLM model with fallback"""
+        """Load SmolVLM model"""
         try:
-            # Try different model classes for SmolVLM
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            
-            # Try loading without device_map first (simpler)
-            try:
-                from transformers import AutoModelForCausalLM
-                self.model = AutoModelForCausalLM.from_pretrained(
-                    "distilgpt2",  # Lightweight model
-                    torch_dtype=torch.float32  # Use float32 for compatibility
-                )
-                self.model_name = "distilgpt2"
-            except:
-                # If that fails, try with device_map
-                self.model = AutoModelForVision2Seq.from_pretrained(
-                    self.model_name,
-                    torch_dtype=torch.float16,
-                    device_map="auto" if torch.cuda.is_available() else "cpu",
-                    trust_remote_code=True
-                )
-                
-            print(f"Model loaded successfully: {self.model_name}")
+            self.model = AutoModelForVision2Seq.from_pretrained(
+                self.model_name,
+                torch_dtype=torch.float16,
+                device_map="auto" if torch.cuda.is_available() else "cpu",
+                trust_remote_code=True
+            )
+            print(f"SmolVLM model loaded successfully: {self.model_name}")
         except Exception as e:
-            print(f"Failed to load any model: {e}")
+            print(f"Failed to load SmolVLM model: {e}")
             print("Using keyword-only fallback")
             self.model = None
             self.tokenizer = None
@@ -114,3 +102,7 @@ Category:"""
             'confidence': 0.3,
             'method': 'default_fallback'
         }
+    
+    def get_supported_categories(self) -> list:
+        """Return list of supported categories"""
+        return self.categories

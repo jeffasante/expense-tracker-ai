@@ -1,137 +1,136 @@
 {% extends 'demo/base.html' %}
 
-{% block title %}Live AI Demo - Expense Tracker{% endblock %}
+{% block title %}AI-Powered Expense Tracker{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <div class="ladder-card ladder-fade-in">
-            <div class="card-header ladder-primary text-white">
-                <h4 class="mb-0"><i class="fas fa-brain me-2"></i>Live AI Expense Categorization</h4>
-                <small>Type an expense description and watch AI categorize it in real-time</small>
+<div class="dashboard">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Total Expenses</span>
+                <div class="stat-icon">
+                    <svg width="16" height="16"><use href="#credit-card"></use></svg>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="aiModel" class="form-label">AI Model Selection</label>
-                    <select class="form-select" id="aiModel">
-                        <option value="rule_based">Rule-Based Categorizer</option>
-                        <option value="ml_primary">ML Enhanced Categorizer</option>
-                        <option value="smol_vlm">SmolVLM Transformer</option>
+            <div class="stat-value" id="totalExpenses">₵0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">This Month</span>
+                <div class="stat-icon">
+                    <svg width="16" height="16"><use href="#calendar"></use></svg>
+                </div>
+            </div>
+            <div class="stat-value" id="monthlyExpenses">₵0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">AI Predictions</span>
+                <div class="stat-icon">
+                    <svg width="16" height="16"><use href="#brain"></use></svg>
+                </div>
+            </div>
+            <div class="stat-value" id="aiPredictions">0</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">
+                <span class="stat-title">Categories</span>
+                <div class="stat-icon">
+                    <svg width="16" height="16"><use href="#tag"></use></svg>
+                </div>
+            </div>
+            <div class="stat-value" id="categoryCount">0</div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        <!-- Expense List -->
+        <div class="main-content">
+            <h2 class="section-title">Your Expenses</h2>
+            <div class="expense-list" id="expenseList">
+                <p style="text-align: center; color: #666; margin: 40px 0;">No expenses yet. Add your first expense to get started.</p>
+            </div>
+        </div>
+
+        <!-- Add Expense Sidebar -->
+        <div class="sidebar">
+            <h2 class="section-title">Add New Expense</h2>
+            
+            <!-- AI Categorization Section -->
+            <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                <h6 style="margin: 0 0 12px 0; display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16"><use href="#brain"></use></svg>
+                    AI Assistant
+                </h6>
+                <div class="form-group">
+                    <label class="form-label">AI Model</label>
+                    <select class="form-select" id="aiModel" style="font-size: 12px;">
                         <option value="auto">Auto (Best Available)</option>
+                        <option value="smol_vlm">SmolVLM Transformer</option>
+                        <option value="ml_primary">ML Enhanced</option>
+                        <option value="rule_based">Rule-Based</option>
                     </select>
                 </div>
-                <div class="mb-3">
-                    <label for="expenseInput" class="form-label">Expense Description</label>
-                    <input type="text" class="form-control form-control-lg" id="expenseInput" 
-                           placeholder="e.g., Waakye at chop bar, Trotro to Kotoka Airport, Shopping at Shoprite">
+                <div id="aiResult" class="hidden" style="margin-top: 12px; padding: 12px; background: #e8f5e8; border-radius: 6px; border: 1px solid #c3e6c3;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <small><strong>AI Categorized:</strong> <span id="aiCategory" style="text-transform: capitalize; color: #059669; font-weight: bold;"></span></small>
+                        <small style="color: #666;">(<span id="aiConfidence"></span>% confidence)</small>
+                    </div>
+                    <div style="background: #d4edda; border-radius: 4px; height: 4px; margin-bottom: 8px;">
+                        <div id="aiConfidenceBar" style="background: #059669; height: 100%; border-radius: 4px; transition: width 0.3s;"></div>
+                    </div>
+                    <small style="color: #666; font-size: 11px;">Category automatically set. Change below if needed.</small>
+                </div>
+            </div>
+
+            <!-- Expense Form -->
+            <form class="expense-form" id="expenseForm">
+                <div class="form-group">
+                    <label class="form-label">Amount</label>
+                    <input type="number" class="form-input" id="amount" placeholder="0.00" step="0.01" required>
                 </div>
                 
-                <div id="result" class="d-none">
-                    <div class="alert alert-success">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>Category:</strong> 
-                                <span id="category" class="badge ai-badge text-white ms-2"></span>
-                            </div>
-                            <div>
-                                <strong>Confidence:</strong> 
-                                <span id="confidence" class="text-success fw-bold"></span>
-                            </div>
-                        </div>
-                        <div class="mt-2">
-                            <div class="confidence-bar bg-light">
-                                <div id="confidenceBar" class="confidence-bar bg-success"></div>
-                            </div>
-                        </div>
-                        <small class="text-muted mt-2 d-block">
-                            Method: <span id="method"></span>
-                        </small>
-                        <div class="mt-3 border-top pt-3">
-                            <label class="form-label small fw-bold">Manual Override:</label>
-                            <div class="d-flex gap-2">
-                                <select class="form-select form-select-sm" id="overrideCategory">
-                                    <option value="">Keep AI prediction</option>
-                                    <option value="food">Food</option>
-                                    <option value="transport">Transport</option>
-                                    <option value="shopping">Shopping</option>
-                                    <option value="bills">Bills</option>
-                                    <option value="entertainment">Entertainment</option>
-                                    <option value="healthcare">Healthcare</option>
-                                    <option value="education">Education</option>
-                                    <option value="travel">Travel</option>
-                                    <option value="other">Other</option>
-                                </select>
-                                <button class="ladder-btn-secondary btn-sm" id="applyOverride">
-                                    <i class="fas fa-edit me-1"></i>Override
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-input" id="description" placeholder="e.g., Waakye at chop bar" required>
                 </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Category <small style="color: #666;">(AI auto-filled, override if needed)</small></label>
+                    <select class="form-select" id="category" required>
+                        <option value="">Waiting for AI categorization...</option>
+                        <option value="food">Food</option>
+                        <option value="transport">Transport</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="bills">Bills</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="healthcare">Healthcare</option>
+                        <option value="education">Education</option>
+                        <option value="travel">Travel</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" id="date" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <svg width="16" height="16"><use href="#plus"></use></svg>
+                    Add Expense
+                </button>
+            </form>
 
-                <div id="loading" class="d-none text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Processing...</span>
-                    </div>
-                    <p class="mt-2 text-muted">AI is analyzing your expense...</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-tags fa-2x text-primary mb-2"></i>
-                        <h5>Smart Categorization</h5>
-                        <p class="text-muted">AI automatically categorizes expenses using advanced keyword matching</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-chart-line fa-2x text-success mb-2"></i>
-                        <h5>Real-time Analysis</h5>
-                        <p class="text-muted">Instant insights and confidence scoring for every prediction</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="jwtTokenCard" class="ladder-card mt-4 d-none">
-            <div class="card-header ladder-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-key me-2"></i>Your JWT Token (for API Testing)</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex gap-2 align-items-center">
-                    <input type="text" class="form-control font-monospace small" id="jwtTokenDisplay" readonly>
-                    <button class="ladder-btn-primary btn-sm" onclick="copyToken()">
-                        <i class="fas fa-copy me-1"></i>Copy
-                    </button>
-                </div>
-                <small class="text-muted mt-2 d-block">
-                    <i class="fas fa-info-circle me-1"></i>Use this token in Swagger UI: <code>Bearer YOUR_TOKEN</code>
-                </small>
-            </div>
-        </div>
-
-        <div class="ladder-card mt-4">
-            <div class="card-header ladder-secondary text-white">
-                <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Try These Examples</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <button class="ladder-btn-primary btn-sm mb-2 me-2 example-btn" data-text="Waakye at Auntie Muni chop bar">Waakye at chop bar</button>
-                        <button class="ladder-btn-primary btn-sm mb-2 me-2 example-btn" data-text="Trotro fare to Kotoka Airport">Trotro to airport</button>
-                        <button class="ladder-btn-primary btn-sm mb-2 me-2 example-btn" data-text="Shopping at Shoprite East Legon">Shoprite shopping</button>
-                    </div>
-                    <div class="col-md-6">
-                        <button class="ladder-btn-secondary btn-sm mb-2 me-2 example-btn" data-text="ECG electricity bill payment">ECG bill payment</button>
-                        <button class="ladder-btn-secondary btn-sm mb-2 me-2 example-btn" data-text="DSTV subscription renewal">DSTV subscription</button>
-                        <button class="ladder-btn-secondary btn-sm mb-2 me-2 example-btn" data-text="Fuel at GOIL filling station">GOIL fuel station</button>
-                    </div>
+            <!-- Quick Examples -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e5e5;">
+                <h6 style="margin: 0 0 12px 0; color: #666; font-size: 12px;">Quick Examples:</h6>
+                <div style="display: grid; gap: 6px;">
+                    <button type="button" class="btn example-btn" data-text="Waakye at Auntie Muni chop bar" style="background: #f8f9fa; color: #666; font-size: 11px; padding: 6px 10px; text-align: left;">Waakye at chop bar</button>
+                    <button type="button" class="btn example-btn" data-text="Trotro fare to Kotoka Airport" style="background: #f8f9fa; color: #666; font-size: 11px; padding: 6px 10px; text-align: left;">Trotro to airport</button>
+                    <button type="button" class="btn example-btn" data-text="ECG electricity bill payment" style="background: #f8f9fa; color: #666; font-size: 11px; padding: 6px 10px; text-align: left;">ECG bill payment</button>
                 </div>
             </div>
         </div>
@@ -141,69 +140,121 @@
 
 {% block scripts %}
 <script>
-const expenseInput = document.getElementById('expenseInput');
-const aiModel = document.getElementById('aiModel');
-const result = document.getElementById('result');
-const loading = document.getElementById('loading');
-const category = document.getElementById('category');
-const confidence = document.getElementById('confidence');
-const confidenceBar = document.getElementById('confidenceBar');
-const method = document.getElementById('method');
-const overrideCategory = document.getElementById('overrideCategory');
-const applyOverride = document.getElementById('applyOverride');
+let expenses = [];
+let aiPredictionCount = 0;
+
+const categoryIcons = {
+    food: 'utensils',
+    transport: 'car',
+    entertainment: 'film',
+    bills: 'zap',
+    shopping: 'shopping-cart',
+    healthcare: 'heart',
+    education: 'user',
+    travel: 'car',
+    other: 'tag'
+};
 
 let debounceTimer;
-let currentPrediction = null;
+let currentAIPrediction = null;
 
-// Show JWT token if user is logged in
-function showJWTToken() {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-        document.getElementById('jwtTokenDisplay').value = token;
-        document.getElementById('jwtTokenCard').classList.remove('d-none');
-    }
+function init() {
+    document.getElementById('date').valueAsDate = new Date();
+    loadSampleData();
+    updateStats();
+    renderExpenses();
 }
 
-function copyToken() {
-    const tokenInput = document.getElementById('jwtTokenDisplay');
-    tokenInput.select();
-    document.execCommand('copy');
+function loadSampleData() {
+    expenses = [
+        {
+            id: 1,
+            amount: 15.50,
+            description: 'Waakye at Auntie Muni chop bar',
+            category: 'food',
+            date: '2024-01-15',
+            aiPredicted: true,
+            aiConfidence: 0.92
+        },
+        {
+            id: 2,
+            amount: 8.00,
+            description: 'Trotro fare to Kotoka Airport',
+            category: 'transport',
+            date: '2024-01-14',
+            aiPredicted: true,
+            aiConfidence: 0.88
+        },
+        {
+            id: 3,
+            amount: 125.00,
+            description: 'ECG electricity bill payment',
+            category: 'bills',
+            date: '2024-01-13',
+            aiPredicted: false
+        }
+    ];
+    aiPredictionCount = expenses.filter(e => e.aiPredicted).length;
+}
+
+function updateStats() {
+    const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const thisMonth = expenses
+        .filter(expense => new Date(expense.date).getMonth() === new Date().getMonth())
+        .reduce((sum, expense) => sum + expense.amount, 0);
+    const categories = new Set(expenses.map(expense => expense.category)).size;
     
-    // Show feedback
-    const btn = event.target.closest('button');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
-    setTimeout(() => {
-        btn.innerHTML = originalText;
-    }, 2000);
+    document.getElementById('totalExpenses').textContent = formatCurrency(total);
+    document.getElementById('monthlyExpenses').textContent = formatCurrency(thisMonth);
+    document.getElementById('aiPredictions').textContent = aiPredictionCount;
+    document.getElementById('categoryCount').textContent = categories;
 }
 
-// Check for token on page load
-document.addEventListener('DOMContentLoaded', showJWTToken);
+function renderExpenses() {
+    const expenseList = document.getElementById('expenseList');
+    
+    if (expenses.length === 0) {
+        expenseList.innerHTML = '<p style="text-align: center; color: #666; margin: 40px 0;">No expenses yet. Add your first expense to get started.</p>';
+        return;
+    }
 
-expenseInput.addEventListener('input', function() {
+    expenseList.innerHTML = expenses
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map(expense => `
+            <div class="expense-item">
+                <div class="expense-info">
+                    <div class="expense-category">
+                        <svg width="16" height="16">
+                            <use href="#${categoryIcons[expense.category] || 'tag'}"></use>
+                        </svg>
+                    </div>
+                    <div class="expense-details">
+                        <div class="expense-title">
+                            ${expense.description}
+                            ${expense.aiPredicted ? '<span style="background: #059669; color: white; font-size: 10px; padding: 2px 4px; border-radius: 3px; margin-left: 6px;">AI</span>' : ''}
+                            ${expense.manualOverride ? '<span style="background: #f59e0b; color: white; font-size: 10px; padding: 2px 4px; border-radius: 3px; margin-left: 6px;">Override</span>' : ''}
+                        </div>
+                        <div class="expense-date">${new Date(expense.date).toLocaleDateString()}</div>
+                    </div>
+                </div>
+                <div class="expense-amount">${formatCurrency(expense.amount)}</div>
+            </div>
+        `).join('');
+}
+
+// AI Categorization
+document.getElementById('description').addEventListener('input', function() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-        if (this.value.trim()) {
+        if (this.value.trim().length > 3) {
             categorizeExpense(this.value);
         } else {
-            result.classList.add('d-none');
+            document.getElementById('aiResult').classList.add('hidden');
         }
-    }, 500);
-});
-
-document.querySelectorAll('.example-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const text = this.dataset.text;
-        expenseInput.value = text;
-        categorizeExpense(text);
-    });
+    }, 800);
 });
 
 async function categorizeExpense(description) {
-    loading.classList.remove('d-none');
-    result.classList.add('d-none');
-    
     try {
         const response = await fetch('/demo/categorize/', {
             method: 'POST',
@@ -212,53 +263,79 @@ async function categorizeExpense(description) {
             },
             body: JSON.stringify({ 
                 description: description,
-                model: aiModel.value 
+                model: document.getElementById('aiModel').value 
             })
         });
         
         const data = await response.json();
-        
-        currentPrediction = data;
-        updateDisplay(data);
-        
-        loading.classList.add('d-none');
-        result.classList.remove('d-none');
+        currentAIPrediction = data;
+        showAIResult(data);
     } catch (error) {
-        console.error('Error:', error);
-        loading.classList.add('d-none');
+        console.error('AI categorization error:', error);
     }
 }
 
-function updateDisplay(data) {
-    category.textContent = data.predicted_category.toUpperCase();
-    confidence.textContent = (data.confidence * 100).toFixed(1) + '%';
-    confidenceBar.style.width = (data.confidence * 100) + '%';
-    method.textContent = data.method || 'rule_based';
+function showAIResult(data) {
+    document.getElementById('aiCategory').textContent = data.predicted_category;
+    document.getElementById('aiConfidence').textContent = Math.round(data.confidence * 100);
+    document.getElementById('aiConfidenceBar').style.width = (data.confidence * 100) + '%';
+    document.getElementById('aiResult').classList.remove('hidden');
     
-    // Reset override dropdown
-    overrideCategory.value = '';
+    // Automatically set the category
+    document.getElementById('category').value = data.predicted_category;
 }
 
-applyOverride.addEventListener('click', function() {
-    const selectedCategory = overrideCategory.value;
-    if (selectedCategory && currentPrediction) {
-        // Update display with manual override
-        const overrideData = {
-            predicted_category: selectedCategory,
-            confidence: 1.0,
-            method: 'manual_override'
-        };
-        updateDisplay(overrideData);
-        
-        // Show success message
-        const originalText = this.innerHTML;
-        this.innerHTML = '<i class="fas fa-check me-1"></i>Applied!';
-        this.classList.add('btn-success');
-        setTimeout(() => {
-            this.innerHTML = originalText;
-            this.classList.remove('btn-success');
-        }, 2000);
+// Example buttons
+document.querySelectorAll('.example-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.getElementById('description').value = this.dataset.text;
+        categorizeExpense(this.dataset.text);
+    });
+});
+
+// Form submission
+document.getElementById('expenseForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const selectedCategory = document.getElementById('category').value;
+    const wasAIPredicted = currentAIPrediction && currentAIPrediction.predicted_category === selectedCategory;
+    
+    const formData = {
+        id: Date.now(),
+        amount: parseFloat(document.getElementById('amount').value),
+        description: document.getElementById('description').value,
+        category: selectedCategory,
+        date: document.getElementById('date').value,
+        aiPredicted: wasAIPredicted,
+        aiConfidence: currentAIPrediction ? currentAIPrediction.confidence : null,
+        manualOverride: currentAIPrediction && !wasAIPredicted
+    };
+    
+    if (formData.aiPredicted) {
+        aiPredictionCount++;
     }
+    
+    expenses.push(formData);
+    updateStats();
+    renderExpenses();
+    
+    // Reset form
+    this.reset();
+    document.getElementById('date').valueAsDate = new Date();
+    document.getElementById('aiResult').classList.add('hidden');
+    document.getElementById('category').innerHTML = '<option value="">Waiting for AI categorization...</option><option value="food">Food</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="bills">Bills</option><option value="entertainment">Entertainment</option><option value="healthcare">Healthcare</option><option value="education">Education</option><option value="travel">Travel</option><option value="other">Other</option>';
+    currentAIPrediction = null;
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    init();
+    
+    // Listen for currency changes
+    window.addEventListener('currencyChanged', function() {
+        updateStats();
+        renderExpenses();
+    });
 });
 </script>
 {% endblock %}

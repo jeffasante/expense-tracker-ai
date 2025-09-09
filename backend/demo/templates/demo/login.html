@@ -1,94 +1,48 @@
 {% extends 'demo/base.html' %}
 
-{% block title %}Login - Ladder Financial{% endblock %}
+{% block title %}Login - Ladder AI Expense Tracker{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="ladder-card">
-            <div class="card-header ladder-gradient-primary text-white text-center">
-                <h4 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i>Login</h4>
-                <small class="opacity-90">Access your expense tracker</small>
+<div class="dashboard">
+    <div class="main-content" style="max-width: 400px; margin: 0 auto;">
+        <h2 class="section-title">Login</h2>
+        <form class="expense-form" id="loginForm">
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-input" id="username" placeholder="Enter username" required>
             </div>
-            <div class="card-body">
-                <form id="loginForm">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="ladder-input form-control" id="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="ladder-input form-control" id="password" required>
-                    </div>
-                    <button type="submit" class="ladder-btn-primary w-100" id="loginBtn">
-                        <i class="fas fa-sign-in-alt me-2"></i>Login
-                    </button>
-                </form>
-                
-                <div id="loginError" class="alert alert-danger mt-3 d-none"></div>
-                <div id="loginSuccess" class="alert alert-success mt-3 d-none"></div>
-                
-                <div class="text-center mt-3">
-                    <small class="text-muted">Don't have an account? <a href="{% url 'demo_register' %}" class="text-ladder-primary">Register here</a></small>
-                </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" id="password" placeholder="Enter password" required>
             </div>
-        </div>
+            <button type="submit" class="btn btn-primary">
+                <svg width="16" height="16">
+                    <use href="#log-in"></use>
+                </svg>
+                Login
+            </button>
+        </form>
+        <p style="text-align: center; margin-top: 16px; color: #666;">
+            Don't have an account? <a href="{% url 'demo_register' %}" style="color: #1a1a1a;">Register here</a>
+        </p>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const loginBtn = document.getElementById('loginBtn');
-    const loginError = document.getElementById('loginError');
-    const loginSuccess = document.getElementById('loginSuccess');
-    
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    
-    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging in...';
-    loginBtn.disabled = true;
-    loginError.classList.add('d-none');
-    loginSuccess.classList.add('d-none');
-    
-    try {
-        const response = await fetch('/api/auth/login/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password })
-        });
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
         
-        const data = await response.json();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
         
-        if (response.ok) {
-            // Store tokens
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
-            localStorage.setItem('user_data', JSON.stringify(data.user));
-            
-            loginSuccess.textContent = 'Login successful! Redirecting...';
-            loginSuccess.classList.remove('d-none');
-            
-            // Redirect to demo
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1500);
-        } else {
-            loginError.textContent = data.detail || 'Login failed. Please check your credentials.';
-            loginError.classList.remove('d-none');
+        // Mock login - in real app, make API call
+        if (username && password) {
+            localStorage.setItem('access_token', 'mock_token');
+            localStorage.setItem('user_data', JSON.stringify({username: username}));
+            window.location.href = '{% url "demo_home" %}';
         }
-    } catch (error) {
-        loginError.textContent = 'Network error. Please try again.';
-        loginError.classList.remove('d-none');
-    }
-    
-    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i>Login';
-    loginBtn.disabled = false;
-});
+    });
 </script>
 {% endblock %}
