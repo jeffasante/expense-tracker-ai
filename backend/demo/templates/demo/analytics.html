@@ -64,6 +64,11 @@
             <div id="categoryBreakdown">
                 <!-- Category breakdown will be loaded here -->
             </div>
+            
+            <h2 class="section-title" style="margin-top: 24px;">Anomalies Detected</h2>
+            <div id="anomaliesSection">
+                <!-- Anomalies will be loaded here -->
+            </div>
         </div>
     </div>
 </div>
@@ -74,15 +79,26 @@
 <script>
     let expenses = [];
     
-    function loadAnalyticsData() {
-        // Mock data - in real app, fetch from API
-        expenses = [
-            { amount: 45.50, category: 'food', date: '2024-01-15' },
-            { amount: 12.00, category: 'transport', date: '2024-01-14' },
-            { amount: 89.99, category: 'utilities', date: '2024-01-13' },
-            { amount: 25.00, category: 'food', date: '2024-01-12' },
-            { amount: 15.50, category: 'transport', date: '2024-01-11' }
-        ];
+    async function loadAnalyticsData() {
+        try {
+            // Load expenses from API
+            const expensesResponse = await fetch('/api/expenses/');
+            if (expensesResponse.ok) {
+                const expensesData = await expensesResponse.json();
+                expenses = expensesData.results || expensesData;
+            }
+            
+            // Load insights including anomalies
+            const insightsResponse = await fetch('/api/ai/insights/');
+            if (insightsResponse.ok) {
+                const insights = await insightsResponse.json();
+                renderAnomalies(insights.anomalies || []);
+            }
+        } catch (error) {
+            console.error('Error loading analytics data:', error);
+            expenses = [];
+            renderAnomalies([]);
+        }
         
         updateAnalytics();
         renderChart();
@@ -90,31 +106,44 @@
     }
     
     function updateAnalytics() {
-        const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-        const avgDaily = total / 30; // Assuming 30 days
+        const total = expenses.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+        const avgDaily = total / 30;
         
         // Find top category
         const categoryTotals = {};
         expenses.forEach(expense => {
-            categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
+            const amount = parseFloat(expense.amount) || 0;
+            categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + amount;
         });
-        const topCategory = Object.keys(categoryTotals).reduce((a, b) => 
-            categoryTotals[a] > categoryTotals[b] ? a : b, 'none'
-        );
+        
+        const topCategory = Object.keys(categoryTotals).length > 0 
+            ? Object.keys(categoryTotals).reduce((a, b) => 
+                categoryTotals[a] > categoryTotals[b] ? a : b
+            ) : 'none';
         
         document.getElementById('avgDaily').textContent = formatCurrency(avgDaily);
         document.getElementById('topCategory').textContent = topCategory.charAt(0).toUpperCase() + topCategory.slice(1);
-        document.getElementById('predictions').textContent = expenses.length;
+        document.getElementById('predictions').textContent = expenses.filter(e => e.ai_predicted).length;
     }
     
     function renderChart() {
         const ctx = document.getElementById('expenseChart').getContext('2d');
         
+        if (expenses.length === 0) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.fillStyle = '#666';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('No expense data to display', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            return;
+        }
+        
         // Group expenses by date
         const dailyTotals = {};
         expenses.forEach(expense => {
             const date = expense.date;
-            dailyTotals[date] = (dailyTotals[date] || 0) + expense.amount;
+            const amount = parseFloat(expense.amount) || 0;
+            dailyTotals[date] = (dailyTotals[date] || 0) + amount;
         });
         
         const dates = Object.keys(dailyTotals).sort();
@@ -129,12 +158,18 @@
                     data: amounts,
                     borderColor: '#1a1a1a',
                     backgroundColor: 'rgba(26, 26, 26, 0.1)',
-                    tension: 0.1
+                    tension: 0.1,
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -152,16 +187,22 @@
     function renderCategoryBreakdown() {
         const categoryTotals = {};
         expenses.forEach(expense => {
-            categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
+            const amount = parseFloat(expense.amount) || 0;
+            categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + amount;
         });
         
         const total = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
         
         const breakdown = document.getElementById('categoryBreakdown');
+        if (total === 0) {
+            breakdown.innerHTML = '<p style="color: #666; font-size: 14px;">No expenses to analyze</p>';
+            return;
+        }
+        
         breakdown.innerHTML = Object.entries(categoryTotals)
             .sort(([,a], [,b]) => b - a)
             .map(([category, amount]) => {
-                const percentage = ((amount / total) * 100).toFixed(1);
+                const percentage = total > 0 ? ((amount / total) * 100).toFixed(1) : '0.0';
                 return `
                     <div style="margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
@@ -175,6 +216,27 @@
                     </div>
                 `;
             }).join('');
+    }
+    
+    function renderAnomalies(anomalies) {
+        const anomaliesSection = document.getElementById('anomaliesSection');
+        
+        if (anomalies.length === 0) {
+            anomaliesSection.innerHTML = '<p style="color: #666; font-size: 14px;">No unusual spending detected</p>';
+            return;
+        }
+        
+        anomaliesSection.innerHTML = anomalies.map(anomaly => `
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-weight: 500; font-size: 14px;">${anomaly.description}</span>
+                    <span style="font-weight: 600; color: #d63031;">${formatCurrency(anomaly.amount)}</span>
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                    ${new Date(anomaly.date).toLocaleDateString()} • Unusually high expense
+                </div>
+            </div>
+        `).join('');
     }
     
     document.addEventListener('DOMContentLoaded', loadAnalyticsData);

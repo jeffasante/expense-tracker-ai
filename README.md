@@ -11,7 +11,7 @@ A Django REST API with AI-powered expense categorization and insights generation
 - Proper request/response formats
 
 **AI-Powered Features**
-- **Expense Categorization**: Rule-based ML model with keyword matching
+- **Expense Categorization**: DialoGPT-small language model with enhanced keyword fallback
 - **Manual Override**: Users can override AI predictions
 - **Insights & Summaries**: Monthly/weekly spending, top categories, anomaly detection
 
@@ -109,14 +109,14 @@ backend/
 ```
 
 ### AI Pipeline Design
-- **Categorizer**: Rule-based keyword matching with fallback
+- **Categorizer**: DialoGPT-small language model with enhanced keyword fallback
 - **Insights Generator**: Statistical analysis for summaries and anomalies
 - **Scalable**: Easy to swap ML models or add new AI features
-- **Deterministic**: Consistent results for testing
+- **Robust Fallback**: Multiple layers of categorization methods
 
 ### Key Design Decisions
 1. **JWT Authentication**: Stateless, scalable auth
-2. **Rule-based AI**: Simple, explainable, fast categorization
+2. **Hybrid AI**: DialoGPT-small + enhanced keyword matching for reliability
 3. **Modular Apps**: Clean separation of concerns
 4. **Comprehensive Testing**: Unit + integration coverage
 5. **Docker Support**: Easy deployment and development
@@ -181,7 +181,7 @@ curl -X GET http://localhost:8000/api/ai/insights/ \
 
 - **Backend**: Django 4.2, Django REST Framework
 - **Authentication**: JWT (SimpleJWT)
-- **AI/ML**: Scikit-learn, NumPy, Pandas
+- **AI/ML**: PyTorch, Transformers (DialoGPT-small), Scikit-learn, NumPy, Pandas
 - **Documentation**: drf-spectacular (OpenAPI 3.0)
 - **Database**: SQLite (development), PostgreSQL ready
 - **Testing**: Django TestCase, REST Framework test client
@@ -190,10 +190,11 @@ curl -X GET http://localhost:8000/api/ai/insights/ \
 ## AI Features Explained
 
 ### Expense Categorization
-- **Method**: Rule-based keyword matching
+- **Primary Method**: DialoGPT-small language model
+- **Fallback Method**: Enhanced keyword matching with Ghana-specific terms
 - **Categories**: Food, Transport, Shopping, Entertainment, Bills, Healthcare, Education, Travel, Other
-- **Confidence Scoring**: Based on keyword matches
-- **Fallback**: Defaults to 'other' category
+- **Confidence Scoring**: Model-based + keyword match strength
+- **Robust Fallback**: Multiple layers ensure reliable categorization
 - **Override**: Users can manually correct predictions
 
 ### Insights & Analytics

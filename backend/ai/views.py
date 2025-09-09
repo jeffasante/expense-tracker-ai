@@ -138,7 +138,7 @@ def override_ai_category(request):
     })
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([])
 def get_insights(request):
     """
     Get comprehensive AI-powered spending insights and analytics.
@@ -177,7 +177,24 @@ def get_insights(request):
     All insights are personalized to the authenticated user and
     include only their expense data for privacy and relevance.
     """
-    generator = InsightsGenerator(request.user)
+    # Use session-specific demo user for unauthenticated requests
+    if request.user.is_authenticated:
+        user = request.user
+    else:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        session_key = request.session.session_key or request.session.create()
+        demo_email = f'demo_{session_key}@example.com'
+        user, created = User.objects.get_or_create(
+            email=demo_email,
+            defaults={
+                'username': f'demo_{session_key}',
+                'first_name': 'Demo', 
+                'last_name': 'User'
+            }
+        )
+    
+    generator = InsightsGenerator(user)
     
     # Get query parameters
     year = request.GET.get('year')

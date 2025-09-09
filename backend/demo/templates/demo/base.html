@@ -17,18 +17,24 @@
             background-color: #fafafa;
             color: #1a1a1a;
             line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .navbar {
             background-color: #ffffff;
             border-bottom: 1px solid #e5e5e5;
-            padding: 16px 0;
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 16px;
         }
 
         .navbar .container {
@@ -41,27 +47,32 @@
             display: flex;
             align-items: center;
             text-decoration: none;
-            color: #1a1a1a;
+            color: #1a1a1a !important;
+            flex-shrink: 0;
+        }
+
+        .navbar-brand:visited {
+            color: #1a1a1a !important;
         }
 
         .brand-icon {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             background-color: #1a1a1a;
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px;
+            margin-right: 8px;
         }
 
         .brand-text {
             font-weight: 600;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .brand-subtitle {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
             font-weight: 400;
         }
@@ -69,29 +80,47 @@
         .navbar-nav {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .mobile-menu-btn:hover {
+            background-color: #f5f5f5;
         }
 
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 8px 16px;
+            padding: 8px 12px;
             text-decoration: none;
-            color: #666;
-            font-size: 14px;
+            color: #666 !important;
+            font-size: 13px;
             border-radius: 6px;
             transition: all 0.2s ease;
+            white-space: nowrap;
         }
 
         .nav-link:hover {
-            color: #1a1a1a;
+            color: #1a1a1a !important;
             background-color: #f5f5f5;
+        }
+
+        .nav-link:visited {
+            color: #666 !important;
         }
 
         .nav-link svg {
             width: 16px;
             height: 16px;
-            margin-right: 6px;
+            margin-right: 4px;
         }
 
         .dropdown {
@@ -112,6 +141,21 @@
             z-index: 1000;
         }
 
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 98;
+        }
+
+        .mobile-overlay.active {
+            display: block;
+        }
+
         .dropdown.active .dropdown-menu {
             display: block;
         }
@@ -119,11 +163,16 @@
         .dropdown-item {
             display: flex;
             align-items: center;
-            padding: 8px 16px;
+            padding: 12px 16px;
             text-decoration: none;
-            color: #666;
+            color: #666 !important;
             font-size: 14px;
             transition: background-color 0.2s ease;
+            min-height: 44px;
+        }
+
+        .dropdown-item:visited {
+            color: #666 !important;
         }
 
         .dropdown-item:hover {
@@ -138,27 +187,27 @@
         }
 
         main {
-            padding: 32px 0;
-            min-height: calc(100vh - 200px);
+            padding: 20px 0;
+            min-height: calc(100vh - 120px);
         }
 
         .dashboard {
             display: grid;
-            gap: 24px;
+            gap: 20px;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
         .stat-card {
             background: #ffffff;
             border: 1px solid #e5e5e5;
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
         }
 
         .stat-header {
@@ -193,21 +242,21 @@
         .content-grid {
             display: grid;
             grid-template-columns: 1fr 320px;
-            gap: 24px;
+            gap: 20px;
         }
 
         .main-content {
             background: #ffffff;
             border: 1px solid #e5e5e5;
             border-radius: 12px;
-            padding: 24px;
+            padding: 20px;
         }
 
         .sidebar {
             background: #ffffff;
             border: 1px solid #e5e5e5;
             border-radius: 12px;
-            padding: 24px;
+            padding: 20px;
         }
 
         .section-title {
@@ -235,12 +284,14 @@
 
         .form-input,
         .form-select {
-            padding: 10px 12px;
+            padding: 12px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 16px;
             transition: border-color 0.2s ease;
             background-color: #ffffff;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .form-input:focus,
@@ -250,10 +301,10 @@
         }
 
         .btn {
-            padding: 10px 16px;
+            padding: 12px 16px;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -261,6 +312,7 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
+            min-height: 44px;
         }
 
         .btn-primary {
@@ -330,16 +382,133 @@
         }
 
         @media (max-width: 768px) {
+            .container {
+                padding: 0 12px;
+            }
+
+            .navbar {
+                padding: 8px 0;
+            }
+
+            .brand-text {
+                font-size: 14px;
+            }
+
+            .brand-subtitle {
+                display: none;
+            }
+
+            .navbar-nav {
+                position: fixed;
+                top: 60px;
+                right: -100%;
+                width: 280px;
+                height: calc(100vh - 60px);
+                background: #ffffff;
+                border-left: 1px solid #e5e5e5;
+                flex-direction: column;
+                align-items: stretch;
+                padding: 20px;
+                gap: 8px;
+                transition: right 0.3s ease;
+                z-index: 99;
+                overflow-y: auto;
+            }
+
+            .navbar-nav.active {
+                right: 0;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-link {
+                padding: 12px 16px;
+                font-size: 14px;
+                border-radius: 8px;
+                justify-content: flex-start;
+            }
+
+            .dropdown-menu {
+                position: static;
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                margin-top: 8px;
+                background: #f8f9fa;
+                border-radius: 8px;
+            }
+
+            .dropdown.active .dropdown-menu {
+                display: block;
+            }
+
             .content-grid {
                 grid-template-columns: 1fr;
+                gap: 16px;
             }
             
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-value {
+                font-size: 20px;
+            }
+
+            .main-content,
+            .sidebar {
+                padding: 16px;
+            }
+
+            .section-title {
+                font-size: 16px;
+            }
+
+            .expense-item {
+                padding: 12px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .expense-info {
+                width: 100%;
+            }
+
+            .expense-amount {
+                align-self: flex-end;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: 1fr;
             }
 
-            .navbar-nav {
-                display: none;
+            .brand-icon {
+                width: 28px;
+                height: 28px;
+            }
+
+            .brand-text {
+                font-size: 13px;
+            }
+
+            .main-content,
+            .sidebar {
+                padding: 12px;
+            }
+
+            .expense-form {
+                gap: 12px;
             }
         }
     </style>
@@ -358,7 +527,10 @@
                     <div class="brand-subtitle">Technical Assessment Submission</div>
                 </div>
             </a>
-            <div class="navbar-nav">
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <svg width="20" height="20"><use href="#menu"></use></svg>
+            </button>
+            <div class="navbar-nav" id="mobileNav">
                 <a class="nav-link" href="{% url 'demo_home' %}">
                     <svg><use href="#brain"></use></svg>
                     Live Demo
@@ -371,7 +543,7 @@
                     <svg><use href="#code"></use></svg>
                     API Docs
                 </a>
-                <select class="form-select" id="currencySelect" style="margin-right: 16px; padding: 6px 10px; font-size: 12px; width: auto;">
+                <select class="form-select" id="currencySelect" style="margin: 8px 0; padding: 8px 12px; font-size: 14px; width: 100%;">
                     <option value="GHS">₵ GHS</option>
                     <option value="USD">$ USD</option>
                     <option value="EUR">€ EUR</option>
@@ -400,6 +572,8 @@
             </div>
         </div>
     </nav>
+
+    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
 
     <main>
         <div class="container">
@@ -512,6 +686,11 @@
             <symbol id="heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
             </symbol>
+            <symbol id="menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="18" x2="20" y2="18"></line>
+            </symbol>
         </defs>
     </svg>
 
@@ -528,7 +707,8 @@
         
         function formatCurrency(amount) {
             const currency = currencies[currentCurrency];
-            return `${currency.symbol}${amount.toFixed(2)}`;
+            const numAmount = parseFloat(amount) || 0;
+            return `${currency.symbol}${numAmount.toFixed(2)}`;
         }
         
         function initCurrency() {
@@ -541,6 +721,14 @@
             });
         }
 
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const mobileNav = document.getElementById('mobileNav');
+            const mobileOverlay = document.getElementById('mobileOverlay');
+            mobileNav.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+        }
+
         // Dropdown functionality
         function toggleDropdown(event) {
             event.preventDefault();
@@ -548,11 +736,19 @@
             dropdown.classList.toggle('active');
         }
 
-        // Close dropdown when clicking outside
+        // Close dropdown and mobile menu when clicking outside
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('userDropdown');
+            const mobileNav = document.getElementById('mobileNav');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
             if (!dropdown.contains(event.target)) {
                 dropdown.classList.remove('active');
+            }
+            
+            if (!mobileNav.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+                mobileNav.classList.remove('active');
+                document.getElementById('mobileOverlay').classList.remove('active');
             }
         });
 

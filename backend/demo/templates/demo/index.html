@@ -82,6 +82,9 @@
                         <div id="aiConfidenceBar" style="background: #059669; height: 100%; border-radius: 4px; transition: width 0.3s;"></div>
                     </div>
                     <small style="color: #666; font-size: 11px;">Category automatically set. Change below if needed.</small>
+                    <div id="modelInfo" style="margin-top: 6px; padding: 6px; background: #f0f0f0; border-radius: 4px; font-size: 10px; color: #555;">
+                        <strong>Model:</strong> <span id="modelDetails"></span>
+                    </div>
                 </div>
             </div>
 
@@ -158,11 +161,37 @@ const categoryIcons = {
 let debounceTimer;
 let currentAIPrediction = null;
 
-function init() {
+async function init() {
     document.getElementById('date').valueAsDate = new Date();
-    loadSampleData();
+    await loadExpenses();
     updateStats();
     renderExpenses();
+}
+
+async function loadExpenses() {
+    try {
+        const response = await fetch('/api/expenses/');
+        
+        if (response.ok) {
+            const data = await response.json();
+            expenses = data.results || data; // Handle paginated or direct array response
+            
+            // Add UI-specific properties
+            expenses = expenses.map(expense => ({
+                ...expense,
+                aiPredicted: expense.ai_predicted || false,
+                manualOverride: expense.ai_predicted === false && expense.ai_confidence
+            }));
+            
+            aiPredictionCount = expenses.filter(e => e.aiPredicted).length;
+        } else {
+            // Fallback to sample data if API fails or user not authenticated
+            loadSampleData();
+        }
+    } catch (error) {
+        console.error('Error loading expenses:', error);
+        loadSampleData();
+    }
 }
 
 function loadSampleData() {
@@ -254,6 +283,14 @@ document.getElementById('description').addEventListener('input', function() {
     }, 800);
 });
 
+// Re-categorize when AI model changes
+document.getElementById('aiModel').addEventListener('change', function() {
+    const description = document.getElementById('description').value;
+    if (description.trim().length > 3) {
+        categorizeExpense(description);
+    }
+});
+
 async function categorizeExpense(description) {
     try {
         const response = await fetch('/demo/categorize/', {
@@ -267,22 +304,102 @@ async function categorizeExpense(description) {
             })
         });
         
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
+        console.log('AI Response:', data); // Debug log
+        
+        // Validate response data
+        if (!data.predicted_category) {
+            throw new Error('Invalid AI response: missing predicted_category');
+        }
+        
         currentAIPrediction = data;
         showAIResult(data);
     } catch (error) {
         console.error('AI categorization error:', error);
+        
+        // Fallback to rule-based categorization
+        const fallbackResult = getFallbackCategory(description);
+        const fallbackData = {
+            predicted_category: fallbackResult.category,
+            confidence: fallbackResult.confidence,
+            method: 'fallback_rules'
+        };
+        
+        currentAIPrediction = fallbackData;
+        showAIResult(fallbackData);
     }
 }
 
+// Simple fallback categorization with confidence
+function getFallbackCategory(description) {
+    const desc = description.toLowerCase();
+    
+    // High confidence matches
+    if (desc.includes('waakye') || desc.includes('chop bar') || desc.includes('restaurant')) {
+        return { category: 'food', confidence: 0.85 };
+    }
+    if (desc.includes('trotro') || desc.includes('taxi') || desc.includes('uber') || desc.includes('bolt')) {
+        return { category: 'transport', confidence: 0.85 };
+    }
+    if (desc.includes('ecg') || desc.includes('electricity') || desc.includes('water company') || desc.includes('internet') || desc.includes('mtn') || desc.includes('vodafone')) {
+        return { category: 'bills', confidence: 0.90 };
+    }
+    if (desc.includes('shoprite') || desc.includes('mall') || desc.includes('market')) {
+        return { category: 'shopping', confidence: 0.85 };
+    }
+    
+    // Medium confidence matches
+    if (desc.includes('food') || desc.includes('eat') || desc.includes('lunch') || desc.includes('dinner')) {
+        return { category: 'food', confidence: 0.70 };
+    }
+    if (desc.includes('transport') || desc.includes('fuel') || desc.includes('petrol')) {
+        return { category: 'transport', confidence: 0.70 };
+    }
+    if (desc.includes('bill') || desc.includes('payment') || desc.includes('subscription')) {
+        return { category: 'bills', confidence: 0.75 };
+    }
+    if (desc.includes('shop') || desc.includes('buy') || desc.includes('purchase')) {
+        return { category: 'shopping', confidence: 0.65 };
+    }
+    
+    // Low confidence default
+    return { category: 'other', confidence: 0.40 };
+}
+
 function showAIResult(data) {
-    document.getElementById('aiCategory').textContent = data.predicted_category;
-    document.getElementById('aiConfidence').textContent = Math.round(data.confidence * 100);
-    document.getElementById('aiConfidenceBar').style.width = (data.confidence * 100) + '%';
+    document.getElementById('aiCategory').textContent = data.predicted_category || 'unknown';
+    
+    // Handle confidence value safely
+    const confidence = data.confidence || 0;
+    const confidencePercent = Math.round(confidence * 100);
+    
+    document.getElementById('aiConfidence').textContent = confidencePercent;
+    document.getElementById('aiConfidenceBar').style.width = confidencePercent + '%';
+    
+    // Show model details
+    const methodMap = {
+        'enhanced_model_fallback': 'DialoGPT-small + Enhanced Keywords',
+        'language_model': 'DialoGPT-small Language Model',
+        'enhanced_keyword': 'Enhanced Keyword Matching',
+        'fallback_rules': 'Rule-based Fallback',
+        'default_enhanced': 'Default Enhanced Rules',
+        'smol_vlm_model': 'SmolVLM Transformer',
+        'keyword_fallback': 'Keyword Fallback'
+    };
+    
+    const modelDetails = methodMap[data.method] || data.method || 'Unknown';
+    document.getElementById('modelDetails').textContent = modelDetails;
+    
     document.getElementById('aiResult').classList.remove('hidden');
     
     // Automatically set the category
-    document.getElementById('category').value = data.predicted_category;
+    if (data.predicted_category) {
+        document.getElementById('category').value = data.predicted_category;
+    }
 }
 
 // Example buttons
@@ -294,42 +411,94 @@ document.querySelectorAll('.example-btn').forEach(btn => {
 });
 
 // Form submission
-document.getElementById('expenseForm').addEventListener('submit', function(e) {
+document.getElementById('expenseForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const selectedCategory = document.getElementById('category').value;
     const wasAIPredicted = currentAIPrediction && currentAIPrediction.predicted_category === selectedCategory;
     
     const formData = {
-        id: Date.now(),
         amount: parseFloat(document.getElementById('amount').value),
         description: document.getElementById('description').value,
         category: selectedCategory,
         date: document.getElementById('date').value,
-        aiPredicted: wasAIPredicted,
-        aiConfidence: currentAIPrediction ? currentAIPrediction.confidence : null,
-        manualOverride: currentAIPrediction && !wasAIPredicted
+        ai_predicted: wasAIPredicted,
+        ai_confidence: currentAIPrediction ? currentAIPrediction.confidence : null
     };
     
-    if (formData.aiPredicted) {
-        aiPredictionCount++;
+    try {
+        // Save to database via API
+        const response = await fetch('/api/expenses/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            const savedExpense = await response.json();
+            
+            // Add to local array for immediate UI update
+            expenses.push({
+                ...savedExpense,
+                aiPredicted: wasAIPredicted,
+                manualOverride: currentAIPrediction && !wasAIPredicted
+            });
+            
+            if (wasAIPredicted) {
+                aiPredictionCount++;
+            }
+            
+            updateStats();
+            renderExpenses();
+            
+            // Reset form
+            this.reset();
+            document.getElementById('date').valueAsDate = new Date();
+            document.getElementById('aiResult').classList.add('hidden');
+            document.getElementById('category').innerHTML = '<option value="">Waiting for AI categorization...</option><option value="food">Food</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="bills">Bills</option><option value="entertainment">Entertainment</option><option value="healthcare">Healthcare</option><option value="education">Education</option><option value="travel">Travel</option><option value="other">Other</option>';
+            currentAIPrediction = null;
+        } else {
+            const error = await response.json();
+            alert('Error saving expense: ' + (error.detail || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error saving expense:', error);
+        alert('Error saving expense. Please try again.');
     }
-    
-    expenses.push(formData);
-    updateStats();
-    renderExpenses();
-    
-    // Reset form
-    this.reset();
-    document.getElementById('date').valueAsDate = new Date();
-    document.getElementById('aiResult').classList.add('hidden');
-    document.getElementById('category').innerHTML = '<option value="">Waiting for AI categorization...</option><option value="food">Food</option><option value="transport">Transport</option><option value="shopping">Shopping</option><option value="bills">Bills</option><option value="entertainment">Entertainment</option><option value="healthcare">Healthcare</option><option value="education">Education</option><option value="travel">Travel</option><option value="other">Other</option>';
-    currentAIPrediction = null;
 });
 
+// Token refresh function
+async function refreshToken() {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) return false;
+    
+    try {
+        const response = await fetch('/api/auth/token/refresh/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: refreshToken })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('access_token', data.access);
+            return true;
+        }
+    } catch (error) {
+        console.error('Token refresh failed:', error);
+    }
+    
+    // Clear invalid tokens
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    return false;
+}
+
 // Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    init();
+document.addEventListener('DOMContentLoaded', async function() {
+    await init();
     
     // Listen for currency changes
     window.addEventListener('currencyChanged', function() {
