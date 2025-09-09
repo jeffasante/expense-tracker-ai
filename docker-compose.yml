@@ -9,7 +9,7 @@ services:
       - ./backend:/app
     environment:
       - DEBUG=True
-      - SECRET_KEY=OGMtcFP}d0g7&5y
+      - SECRET_KEY=django-insecure-development-key-change-in-production
     command: >
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
