@@ -225,7 +225,7 @@ curl -X GET http://localhost:8000/api/ai/insights/ \
 
 ## Read More
 
-For detailed technical documentation, architecture deep-dive, and implementation details, see [more.md](../more.md).
+For detailed technical documentation, architecture deep-dive, and implementation details, see [more.md](more.md).
 
 ---
 
